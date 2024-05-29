@@ -8,7 +8,6 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-
     app.config['SECRET_KEY'] = 'secret-key-do-not-reveal'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///photos.db'
     CWD = Path(os.path.dirname(__file__))
