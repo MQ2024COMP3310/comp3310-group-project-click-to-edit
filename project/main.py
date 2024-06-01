@@ -10,15 +10,11 @@ from sqlalchemy import asc, text
 from . import db
 from .models import User
 import os
-import secrets
 from dotenv import load_dotenv
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 load_dotenv()
 
 main = Blueprint('main', __name__)
-main.secret_key = os.urandom(24)
+
 #loads the sensitive information from .env file, hence they do not need to be hard coded into the source code and risk possible leak if source code is exposed.
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID') 
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
@@ -34,37 +30,11 @@ google = oauth.register(
     redirect_uri='http://localhost:8000/login/authorized',
     server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration',
 )
-# limiter = Limiter(
-#     get_remote_address,
-#     app=main,
-#     default_limits=[],
-#     storage_uri="memory://",
-# )
-
 # This is called when the home page is rendered. It fetches all images sorted by filename.
 @main.route('/')
 def homepage():
   photos = db.session.query(Photo).order_by(asc(Photo.file))
   return render_template('index.html', photos=photos)
-
-@main.route('/search')
-def search():
-  return render_template('search.html')
-
-# @limiter.limit("10 per minute")
-@main.route("/filterSearch", methods=['GET'])
-def searchKeyword():
-  keyword = request.args.get('search')
-  logging.info('User search input', keyword)
-  search_pattern = f'%{keyword}%'
-  photos = db.session.query(Photo).filter((Photo.caption.like(search_pattern)) 
-                                          |(Photo.name.like(search_pattern)) 
-                                          |(Photo.description.like(search_pattern))).all()
-  if not photos:
-    flash("No photos found related to \"" + keyword + "\"")
-    return redirect(url_for('main.homepage'))
-  else :
-    return render_template('index.html', photos=photos)
 
 @main.route('/uploads/<name>')
 def display_file(name):
@@ -123,14 +93,14 @@ def editPhoto(photo_id):
 # This is called when clicking on Delete. 
 @main.route('/photo/<int:photo_id>/delete/', methods = ['GET','POST'])
 def deletePhoto(photo_id):
-  if 'current_user_id' in session or photoToDelete.user_id != session['current_user_id']:
+  photoToDelete = db.session.query(Photo).filter_by(id = photo_id).one()
+  if 'current_user_id' not in session or photoToDelete.user_id != session['current_user_id']:
     flash('You do not have permission to delete this photo.', 'error')
     return redirect(url_for('main.homepage'))
   else: 
     # Previously: Used concatenated SQL, exposing the app to SQL injection attacks
     # Now: SQLAlchemy ORM used, which prevents SQL injection by using parameterized queries instead of unsafe string concatenation
     try:
-      photoToDelete = db.session.query(Photo).filter_by(id = photo_id).one()
       filename = photoToDelete.file
       filepath = os.path.join(current_app.config["UPLOAD_DIR"], filename)
       os.unlink(filepath)
@@ -145,66 +115,5 @@ def deletePhoto(photo_id):
 
 
   
-@main.route('/login')
-def login():
-    # State parameter is introduced to prevent possible CSRF attack.
-    # Generates a random state token using python secret module
-    state = secrets.token_urlsafe(16)
-    # Saves the state token in the session
-    session['oauth_state'] = state
-    # Creates the mew authorization URL using the state parameter
-    redirect_uri = url_for('main.authorized', _external=True)
-    return google.authorize_redirect(redirect_uri, state=state)
-
-@main.route('/login/authorized')
-def authorized():
-    # Verify the state parameter
-    state = request.args.get('state')
-    if state != session.pop('oauth_state', None):
-        flash('Invalid state parameter.', 'error')
-        return redirect(url_for('main.homepage'))
-    
-    #using authorisation flow to prevent leakage of access token
-    token = google.authorize_access_token()
-    if not token:
-        flash('Login failed.', 'error')
-        return redirect(url_for('main.homepage'))
-
-    session['google_token'] = token
-    userinfo_url = 'https://openidconnect.googleapis.com/v1/userinfo'
-    me = google.get(userinfo_url, token=token)
-    if me.ok:
-        user_info = me.json()
-        
-        # Save user info to the database
-        google_id = user_info.get('sub')
-        email = user_info.get('email')
-        name = user_info.get('name')
-        profile_pic = user_info.get('picture')
-
-        user = User.query.filter_by(google_id=google_id).first()
-        if user is None:
-            user = User(
-                google_id=google_id,
-                email=email,
-                name=name,
-                profile_pic=profile_pic
-            )
-            db.session.add(user)
-            db.session.commit()
-        
-        flash('Login successful!', 'success')
-        session['current_user_id'] = user.id
-        return redirect(url_for('main.homepage'))  
-    else:
-        #proper error handling needs to be applied although the codes here could not catch the error when the user permission was not given
-        flash('Login unsuccessful', 'error')
-        return redirect(url_for('main.homepage'))
-
-
-@main.route('/logout')
-def logout():
-    session.pop('google_token', None)
-    return redirect(url_for('main.homepage'))
 
 
