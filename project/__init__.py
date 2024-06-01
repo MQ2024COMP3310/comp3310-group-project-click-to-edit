@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -9,7 +10,9 @@ from pathlib import Path
 db = SQLAlchemy()
 
 def create_app():
+    csrf = CSRFProtect()
     app = Flask(__name__)
+    csrf.init_app(app)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///photos.db'
     app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to cookies.

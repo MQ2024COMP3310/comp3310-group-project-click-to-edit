@@ -50,29 +50,35 @@
                     </div>
                 </a>
 
-                <a href="{{ url_for('main.editPhoto', photo_id=photo.id) }}" title="Edit this photo">
-                    <div class="icon-container highlight green">
-                        <img src="{{ url_for('static', filename='icons/edit.png') }}" alt="edit">
-                    </div>
-                </a>
+                <form action="{{ url_for('main.editPhoto', photo_id=photo.id) }}" method="get">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" title="Edit this photo" style="background: none; border: none; padding: 0; margin: 0;">
+                        <div class="icon-container highlight green">
+                            <img src="{{ url_for('static', filename='icons/edit.png') }}" alt="edit">
+                        </div>
+                    </button>
+                </form>
 
-               <a href="{{ url_for('main.deletePhoto', photo_id=photo.id) }}" title="Delete this photo">
-                  <div class="icon-container highlight red delete">
-                      <img src="{{ url_for('static', filename='icons/delete.png') }}" title="Delete this photo" alt="delete">
-                  </div>
-              </a>
-              <form action="{{ url_for('main.toggle_like', photo_id=photo.id) }}" method="post">
-                
-                <button type="submit" class="like" title="{% if photo.id in liked_photo_ids %}Unlike this photo{% else %}Like this photo{% endif %}">
-                    <div class="icon-container highlight red">
-                        {% if photo.id in liked_photo_ids %}
-                        <img src="{{ url_for('static', filename='icons/redheart.jpg') }}" alt="Unlike">
-                        {% else %}
-                        <img src="{{ url_for('static', filename='icons/heart.jpg') }}" alt="Like">
-                        {% endif %}
-                    </div>
-                </button>
-            </form>
+                <form action="{{ url_for('main.deletePhoto', photo_id=photo.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" title="Delete this photo" style="background: none; border: none; padding: 0; margin: 0;">
+                        <div class="icon-container highlight red delete">
+                            <img src="{{ url_for('static', filename='icons/delete.png') }}" title="Delete this photo" alt="delete">
+                        </div>
+                    </button>
+                </form>
+                <form action="{{ url_for('main.toggle_like', photo_id=photo.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/> 
+                    <button type="submit" class="like" title="{% if photo.id in liked_photo_ids %}Unlike this photo{% else %}Like this photo{% endif %}">
+                        <div class="icon-container highlight red">
+                            {% if photo.id in liked_photo_ids %}
+                            <img src="{{ url_for('static', filename='icons/redheart.jpg') }}" alt="Unlike">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='icons/heart.jpg') }}" alt="Like">
+                            {% endif %}
+                        </div>
+                    </button>
+               </form>
     
             </div>
         </div>

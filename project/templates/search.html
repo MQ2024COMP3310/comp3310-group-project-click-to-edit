@@ -10,7 +10,7 @@ Search for a Photo
 
 {% block content %}
 <form method="GET" action="{{ url_for('searchfeature.searchKeyword') }}">
-
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div class="search-input-container">
         <div>
             <label for="search">Search</label>
