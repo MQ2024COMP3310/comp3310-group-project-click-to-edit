@@ -1,0 +1,26 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}
+Search for a photo
+{% endblock title %}
+
+{% block heading %}
+Search for a Photo
+{% endblock heading %}
+
+{% block content %}
+<form method="GET" action="{{ url_for('main.searchKeyword') }}">
+
+    <div class="input-container">
+        <label for="search">Search</label>
+        <input id="searchbar" type="text" name="search"
+            placeholder="Enter Keyword here"
+            title="Specify what you are looking for"
+            required
+        >
+    </div>
+
+    <button id = "searchButton" type="submit">Search</button>
+</form>
+{% endblock content %}
+

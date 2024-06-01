@@ -39,6 +39,18 @@ def homepage():
   photos = db.session.query(Photo).order_by(asc(Photo.file))
   return render_template('index.html', photos=photos)
 
+@main.route('/search')
+def search():
+  return render_template('search.html')
+
+@main.route("/filterSearch", methods=['GET'])
+def searchKeyword():
+  keyword = request.args.get('search')
+  search_pattern = f'%{keyword}%'
+  photos = db.session.query(Photo).filter((Photo.caption.like(search_pattern)) 
+                                          |(Photo.name.like(search_pattern)) 
+                                          |(Photo.description.like(search_pattern))).all()
+  return render_template('index.html', photos=photos)
 
 @main.route('/uploads/<name>')
 def display_file(name):
@@ -102,6 +114,8 @@ def deletePhoto(photo_id):
   flash('Photo id %s Successfully Deleted' % photo_id)
   return redirect(url_for('main.homepage'))
 
+
+  
 @main.route('/login')
 def login():
     # State parameter is introduced to prevent possible CSRF attack.
