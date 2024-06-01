@@ -123,15 +123,25 @@ def editPhoto(photo_id):
 # This is called when clicking on Delete. 
 @main.route('/photo/<int:photo_id>/delete/', methods = ['GET','POST'])
 def deletePhoto(photo_id):
-  fileResults = db.session.execute(text('select file from photo where id = ' + str(photo_id)))
-  filename = fileResults.first()[0]
-  filepath = os.path.join(current_app.config["UPLOAD_DIR"], filename)
-  os.unlink(filepath)
-  db.session.execute(text('delete from photo where id = ' + str(photo_id)))
-  db.session.commit()
-  
-  flash('Photo id %s Successfully Deleted' % photo_id)
-  return redirect(url_for('main.homepage'))
+  if 'current_user_id' in session or photoToDelete.user_id != session['current_user_id']:
+    flash('You do not have permission to delete this photo.', 'error')
+    return redirect(url_for('main.homepage'))
+  else: 
+    # Previously: Used concatenated SQL, exposing the app to SQL injection attacks
+    # Now: SQLAlchemy ORM used, which prevents SQL injection by using parameterized queries instead of unsafe string concatenation
+    try:
+      photoToDelete = db.session.query(Photo).filter_by(id = photo_id).one()
+      filename = photoToDelete.file
+      filepath = os.path.join(current_app.config["UPLOAD_DIR"], filename)
+      os.unlink(filepath)
+      db.session.delete(photoToDelete)
+      db.session.commit()
+      
+      flash('Photo id %s Successfully Deleted' % photo_id)
+      return redirect(url_for('main.homepage'))
+    except:
+      flash('Photo id %s Could Not be Deleted' % photo_id)
+      return redirect(url_for('main.homepage'))
 
 
   
