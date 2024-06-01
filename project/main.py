@@ -34,12 +34,12 @@ google = oauth.register(
     redirect_uri='http://localhost:8000/login/authorized',
     server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration',
 )
-limiter = Limiter(
-    get_remote_address,
-    app=main,
-    default_limits=[],
-    storage_uri="memory://",
-)
+# limiter = Limiter(
+#     get_remote_address,
+#     app=main,
+#     default_limits=[],
+#     storage_uri="memory://",
+# )
 
 # This is called when the home page is rendered. It fetches all images sorted by filename.
 @main.route('/')
@@ -51,7 +51,7 @@ def homepage():
 def search():
   return render_template('search.html')
 
-@limiter.limit("10 per minute")
+# @limiter.limit("10 per minute")
 @main.route("/filterSearch", methods=['GET'])
 def searchKeyword():
   keyword = request.args.get('search')
@@ -90,7 +90,8 @@ def newPhoto():
     newPhoto = Photo(name = request.form['user'], 
                     caption = request.form['caption'],
                     description = request.form['description'],
-                    file = file.filename)
+                    file = file.filename,
+                    user_id = session['current_user_id'])
     db.session.add(newPhoto)
     flash('New Photo %s Successfully Created' % newPhoto.name)
     db.session.commit()
@@ -102,17 +103,21 @@ def newPhoto():
 @main.route('/photo/<int:photo_id>/edit/', methods = ['GET', 'POST'])
 def editPhoto(photo_id):
   editedPhoto = db.session.query(Photo).filter_by(id = photo_id).one()
-  if request.method == 'POST':
-    if request.form['user']:
-      editedPhoto.name = request.form['user']
-      editedPhoto.caption = request.form['caption']
-      editedPhoto.description = request.form['description']
-      db.session.add(editedPhoto)
-      db.session.commit()
-      flash('Photo Successfully Edited %s' % editedPhoto.name)
-      return redirect(url_for('main.homepage'))
-  else:
-    return render_template('edit.html', photo = editedPhoto)
+  if 'current_user_id' not in session or editedPhoto.user_id != session['current_user_id']:
+    flash('You do not have permission to edit this photo.', 'error')
+    return redirect(url_for('main.homepage'))
+  else: 
+    if request.method == 'POST':
+      if request.form['user']:
+        editedPhoto.name = request.form['user']
+        editedPhoto.caption = request.form['caption']
+        editedPhoto.description = request.form['description']
+        db.session.add(editedPhoto)
+        db.session.commit()
+        flash('Photo Successfully Edited %s' % editedPhoto.name)
+        return redirect(url_for('main.homepage'))
+    else:
+      return render_template('edit.html', photo = editedPhoto)
 
 
 # This is called when clicking on Delete. 
@@ -179,6 +184,7 @@ def authorized():
             db.session.commit()
         
         flash('Login successful!', 'success')
+        session['current_user_id'] = user.id
         return redirect(url_for('main.homepage'))  
     else:
         #proper error handling needs to be applied although the codes here could not catch the error when the user permission was not given

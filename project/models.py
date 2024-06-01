@@ -6,7 +6,8 @@ class Photo(db.Model):
     caption = db.Column(db.String(250), nullable=False)
     file = db.Column(db.String(250), nullable=False)
     description = db.Column(db.String(600), nullable=True)
-
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # referencing 'id' attribute of 'User' Table
+    
     @property
     def serialize(self):
        """Return object data in easily serializeable format"""
@@ -16,6 +17,7 @@ class Photo(db.Model):
            'caption'      : self.caption,
            'file'         : self.file,
            'desc'         : self.description,
+           'user'         : self.user_id
        }
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # Adding a primary key for the User model
@@ -23,6 +25,7 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     profile_pic = db.Column(db.String(250), nullable=True)
+    photos = db.relationship('Photo', backref = 'user', lazy = True)
 
     @property
     def serialize(self):
