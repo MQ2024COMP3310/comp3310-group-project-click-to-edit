@@ -50,7 +50,11 @@ def searchKeyword():
   photos = db.session.query(Photo).filter((Photo.caption.like(search_pattern)) 
                                           |(Photo.name.like(search_pattern)) 
                                           |(Photo.description.like(search_pattern))).all()
-  return render_template('index.html', photos=photos)
+  if not photos:
+    flash("No photos found related to \"" + keyword + "\"")
+    return redirect(url_for('main.homepage'))
+  else :
+    return render_template('index.html', photos=photos)
 
 @main.route('/uploads/<name>')
 def display_file(name):

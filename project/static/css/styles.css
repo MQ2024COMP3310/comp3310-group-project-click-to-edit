@@ -27,6 +27,32 @@
 	box-sizing: border-box;
 }
 
+.search-input-container {
+    display: flex;
+    align-items: center; /* Ensures the search bar and button are vertically aligned */
+    margin: 20px 0; /* Provides top and bottom margin for spacing */
+}
+
+#searchbar {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px; /* Adds some space between the search bar and the button */
+}
+
+#searchButton {
+    width: 100px; /* Fixed width for the button */
+    padding: 8px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#searchButton:hover {
+    background-color: #45a049;
+}
 img {
 	vertical-align: middle;
 	width: 100%;

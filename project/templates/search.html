@@ -11,16 +11,20 @@ Search for a Photo
 {% block content %}
 <form method="GET" action="{{ url_for('main.searchKeyword') }}">
 
-    <div class="input-container">
-        <label for="search">Search</label>
-        <input id="searchbar" type="text" name="search"
-            placeholder="Enter Keyword here"
-            title="Specify what you are looking for"
-            required
-        >
-    </div>
+    <div class="search-input-container">
+        <div>
+            <label for="search">Search</label>
+            <input id="searchbar" type="text" name="search"
+                placeholder="Enter Keyword here"
+                title="Specify what you are looking for"
+                required
+            >
+        </div>
+        <div>
+            <button id = "searchButton" type="submit">Search</button>
+        </div>
 
-    <button id = "searchButton" type="submit">Search</button>
+    </div>
 </form>
 {% endblock content %}
 
