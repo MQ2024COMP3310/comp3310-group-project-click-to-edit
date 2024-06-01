@@ -300,6 +300,7 @@ header .heading-container:hover {
 	border: 0.2em var(--blue-color) solid;
 }
 
+
 .icon-container img {
 	border-radius: 100%;
 	aspect-ratio: 1;

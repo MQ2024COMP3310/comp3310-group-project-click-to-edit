@@ -12,9 +12,8 @@ def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///photos.db'
-    app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS.
     app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to cookies.
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Strict or Lax depending on your needs.
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  
 
     CWD = Path(os.path.dirname(__file__))
     app.config['UPLOAD_DIR'] = CWD / "uploads"

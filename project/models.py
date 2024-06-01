@@ -7,7 +7,7 @@ class Photo(db.Model):
     file = db.Column(db.String(250), nullable=False)
     description = db.Column(db.String(600), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # referencing 'id' attribute of 'User' Table
-    
+    likes = db.relationship('Like', back_populates='photo')
     @property
     def serialize(self):
        """Return object data in easily serializeable format"""
@@ -26,7 +26,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     profile_pic = db.Column(db.String(250), nullable=True)
     photos = db.relationship('Photo', backref = 'user', lazy = True)
-
+    likes = db.relationship('Like', back_populates='user')
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
@@ -37,3 +37,10 @@ class User(db.Model):
             'name': self.name,
             'profile_pic': self.profile_pic,
         }
+
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'))
+    user = db.relationship('User', back_populates='likes')
+    photo = db.relationship('Photo', back_populates='likes')

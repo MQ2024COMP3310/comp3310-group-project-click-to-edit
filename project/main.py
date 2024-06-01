@@ -5,7 +5,7 @@ from flask import (
 )
 import logging
 from authlib.integrations.flask_client import OAuth
-from .models import Photo
+from .models import Like, Photo
 from sqlalchemy import asc, text
 from . import db
 from .models import User
@@ -19,7 +19,13 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def homepage():
   photos = db.session.query(Photo).order_by(asc(Photo.file))
-  return render_template('index.html', photos=photos)
+  liked_photo_ids = []
+  if 'current_user_id' in session:
+    liked_photo_ids_query = db.session.query(Like.photo_id).filter_by(user_id=session['current_user_id']).all()
+    # Extract photo IDs from the query result
+    liked_photo_ids = [photo_id[0] for photo_id in liked_photo_ids_query]
+  return render_template('index.html', photos=photos, liked_photo_ids=liked_photo_ids)
+
 
 @main.route('/uploads/<name>')
 def display_file(name):
@@ -98,7 +104,22 @@ def deletePhoto(photo_id):
       flash('Photo id %s Could Not be Deleted' % photo_id)
       return redirect(url_for('main.homepage'))
 
+@main.route('/toggle_like/<int:photo_id>', methods=['POST'])
+def toggle_like(photo_id):
+    if 'current_user_id' not in session:
+        flash("Please login to like this photo", 'error')
+        return redirect(url_for('main.homepage'))
 
-  
+    user_id = session['current_user_id']
+    like = Like.query.filter_by(user_id=user_id, photo_id=photo_id).first()
 
-
+    if like:
+        db.session.delete(like)
+        flash('Photo unliked', 'success')
+    else:
+        new_like = Like(user_id=user_id, photo_id=photo_id)
+        db.session.add(new_like)
+        flash('Photo liked', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('main.homepage'))

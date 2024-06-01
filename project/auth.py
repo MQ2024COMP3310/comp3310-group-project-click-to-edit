@@ -1,10 +1,10 @@
 from flask import (
-  Blueprint, request, 
+  Blueprint, render_template, request, 
   flash, redirect, url_for,  session, 
   current_app
 )
 from authlib.integrations.flask_client import OAuth
-from .models import Photo
+from .models import Like, Photo
 from sqlalchemy import asc, text
 import secrets
 from . import db
@@ -70,6 +70,7 @@ def authorized():
 
         user = User.query.filter_by(google_id=google_id).first()
         if user is None:
+            flash("New user time")
             user = User(
                 google_id=google_id,
                 email=email,
@@ -78,9 +79,8 @@ def authorized():
             )
             db.session.add(user)
             db.session.commit()
-        
-        flash('Login successful!', 'success')
         session['current_user_id'] = user.id
+        flash('Login successful!', 'success')
         return redirect(url_for('main.homepage'))  
     else:
         #proper error handling needs to be applied although the codes here could not catch the error when the user permission was not given
@@ -91,4 +91,5 @@ def authorized():
 @auth.route('/logout')
 def logout():
     session.pop('google_token', None)
+    session.clear()
     return redirect(url_for('main.homepage'))
