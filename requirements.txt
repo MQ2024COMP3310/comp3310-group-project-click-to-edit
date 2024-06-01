@@ -3,3 +3,4 @@ flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 Flask-Authlib-Client==0.0.1
 python-dotenv
+Flask-Limiter

@@ -12,6 +12,8 @@ from .models import User
 import os
 import secrets
 from dotenv import load_dotenv
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 load_dotenv()
 
@@ -32,6 +34,12 @@ google = oauth.register(
     redirect_uri='http://localhost:8000/login/authorized',
     server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration',
 )
+limiter = Limiter(
+    get_remote_address,
+    app=main,
+    default_limits=[],
+    storage_uri="memory://",
+)
 
 # This is called when the home page is rendered. It fetches all images sorted by filename.
 @main.route('/')
@@ -43,9 +51,11 @@ def homepage():
 def search():
   return render_template('search.html')
 
+@limiter.limit("10 per minute")
 @main.route("/filterSearch", methods=['GET'])
 def searchKeyword():
   keyword = request.args.get('search')
+  logging.info('User search input', keyword)
   search_pattern = f'%{keyword}%'
   photos = db.session.query(Photo).filter((Photo.caption.like(search_pattern)) 
                                           |(Photo.name.like(search_pattern)) 
