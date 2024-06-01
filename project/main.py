@@ -15,21 +15,6 @@ load_dotenv()
 
 main = Blueprint('main', __name__)
 
-#loads the sensitive information from .env file, hence they do not need to be hard coded into the source code and risk possible leak if source code is exposed.
-GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID') 
-GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
-
-oauth = OAuth(current_app)
-google = oauth.register(
-    name='google',
-    client_id=GOOGLE_CLIENT_ID,
-    client_secret=GOOGLE_CLIENT_SECRET,
-    authorize_params=None,
-    access_token_params=None,
-    client_kwargs={'scope': 'openid profile email'},
-    redirect_uri='http://localhost:8000/login/authorized',
-    server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration',
-)
 # This is called when the home page is rendered. It fetches all images sorted by filename.
 @main.route('/')
 def homepage():
