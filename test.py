@@ -80,7 +80,6 @@ def test_csrf_protection(client, init_database):
         assert 'The CSRF token is missing.' in response.get_data(as_text=True)   
 
 # Task 8 and 9 Feature 1
-
 def test_search_no_results(client):
     response = client.get('/filterSearch', query_string={'search': 'nonexistent'})
     assert response.status_code == 200
