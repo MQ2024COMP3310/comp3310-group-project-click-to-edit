@@ -16,6 +16,11 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///photos.db'
     app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to cookies.
+    # Task 8 & 9: 
+    # Prevents cookies from being sent with cross-site POST requests
+    # Absence of the session cookies will prevent POST requests from 
+        # third party malicious websites from being successful
+        # as the session will not be recognised
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  
 
     CWD = Path(os.path.dirname(__file__))

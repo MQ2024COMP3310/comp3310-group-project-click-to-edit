@@ -19,11 +19,21 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def homepage():
   photos = db.session.query(Photo).order_by(asc(Photo.file))
+  # Task 8 & 9: Feature 2
+  # List is empty first, as for an unauthenticated user, none of the posts will be liked 
   liked_photo_ids = []
+  # Only if the current user is an authenticated user
   if 'current_user_id' in session:
+    # Query the Like table to get a Tuple of photo_ids of the photos that the current logged in user has liked
+    # Parameterised Queries: SQLAlchemy ORM being used -> converts Python code to SQL statements through parameterized queries
+      # Hence, any input from the client side is treated as data, rather than executable SQL code
+      # Preventing SQL injections.
     liked_photo_ids_query = db.session.query(Like.photo_id).filter_by(user_id=session['current_user_id']).all()
     # Extract photo IDs from the query result
     liked_photo_ids = [photo_id[0] for photo_id in liked_photo_ids_query]
+  # When all the photos from the database will be rendered
+  # The photos that the current user has liked will have a red heart icon
+  # The photos that the current user has not liked will have a white heart icon
   return render_template('index.html', photos=photos, liked_photo_ids=liked_photo_ids)
 
 
@@ -104,22 +114,36 @@ def deletePhoto(photo_id):
       flash('Photo id %s Could Not be Deleted' % photo_id)
       return redirect(url_for('main.homepage'))
 
+
+# Task 8 & 9: Feature 2
 @main.route('/toggle_like/<int:photo_id>', methods=['POST'])
 def toggle_like(photo_id):
+    # If the current user is not logged in, redirect the user the homepage and
+    # Flash an error message prompting the user to login
     if 'current_user_id' not in session:
         flash("Please login to like this photo", 'error')
         return redirect(url_for('main.homepage'))
-
+    # Retrieve the current user's ID from the session
     user_id = session['current_user_id']
+    # Parameterised Queries: SQLAlchemy ORM being used -> converts Python code to SQL statements through parameterized queries
+      # Hence, any input from the client side is treated as data, rather than executable SQL code
+      # Preventing SQL injections.
+    # Query to check if the current logged in user has liked the current photo
     like = Like.query.filter_by(user_id=user_id, photo_id=photo_id).first()
 
+    # If a like exists, it means the user has previously liked the photo and now wants to unlike it
     if like:
+        # Delete the existing like from the database
         db.session.delete(like)
         flash('Photo unliked', 'success')
     else:
+        # If no like exists, it means the user wants to like the photo
+        # Create a new Like object with the user ID and photo ID
         new_like = Like(user_id=user_id, photo_id=photo_id)
+        # Add the new like to the database session
         db.session.add(new_like)
         flash('Photo liked', 'success')
     
     db.session.commit()
+    # Redirect the user back to the homepage after the action is complete
     return redirect(url_for('main.homepage'))
