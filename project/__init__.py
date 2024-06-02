@@ -10,6 +10,8 @@ from pathlib import Path
 db = SQLAlchemy()
 
 def create_app():
+    # Task 8 & 9: 
+    # Prevent CSRF attacks 
     csrf = CSRFProtect()
     app = Flask(__name__)
     csrf.init_app(app)
